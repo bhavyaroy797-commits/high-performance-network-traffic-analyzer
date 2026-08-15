@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>High-Performance Network Traffic Analyzer Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <header>
+        <div class="logo-section">
+          <div class="logo-icon">NT</div>
+          <div class="logo-text">
+            <h1>Network Traffic Analyzer</h1>
+            <p>High-Performance C++ Backend Visualizer</p>
+          </div>
+        </div>
+        <div class="status-panel">
+          <div id="live-status" class="status-indicator active">
+            <span class="status-dot"></span>
+            <span id="status-text">Live Capture: Active</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="metrics-row">
+        <div class="metric-card packets">
+          <div class="metric-header">
+            <span class="metric-title">Packets / Sec</span>
+            <div class="metric-icon">📊</div>
+          </div>
+          <div class="metric-value-wrapper">
+            <div id="metric-pps" class="metric-value">0</div>
+            <span class="metric-badge badge-blue">
+              <span class="trend-icon">▲</span> live
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card connections">
+          <div class="metric-header">
+            <span class="metric-title">Active TCP Connections</span>
+            <div class="metric-icon">🔌</div>
+          </div>
+          <div class="metric-value-wrapper">
+            <div id="metric-tcp" class="metric-value">0</div>
+            <span class="metric-badge badge-green">
+              <span class="trend-icon">▲</span> live
+            </span>
+          </div>
+        </div>
+
+        <div id="card-anomalies" class="metric-card anomalies">
+          <div class="metric-header">
+            <span class="metric-title" style="color: var(--accent-danger)"
+              >Anomalies Detected</span
+            >
+            <div
+              class="metric-icon"
+              style="
+                box-shadow:
+                  inset 4px 4px 8px var(--shadow-dark),
+                  inset -4px -4px 8px rgba(255, 74, 90, 0.08);
+              "
+            >
+              🚨
+            </div>
+          </div>
+          <div class="metric-value-wrapper">
+            <div
+              id="metric-anomalies"
+              class="metric-value"
+              style="color: var(--accent-danger)"
+            >
+              0
+            </div>
+            <span
+              id="anomalies-badge"
+              class="metric-badge badge-red"
+              style="display: none"
+            >
+              <span>⚠️</span> CRITICAL
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-layout">
+        <div class="control-panel">
+          <div class="panel-heading">
+            CONTROL PANEL
+            <span>ACTIVE</span>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">CAPTURE STATE</span>
+            <button id="btn-start" class="btn btn-start pressed">
+              <span class="btn-dot-indicator"></span>
+              Start Capture
+            </button>
+          </div>
+
+          <div class="control-group">
+            <button id="btn-stop" class="btn btn-stop">
+              <span class="btn-dot-indicator"></span>
+              Stop Capture
+            </button>
+          </div>
+
+          <div class="control-group">
+            <button id="btn-clear" class="btn btn-clear">Clear Log</button>
+          </div>
+
+          <div class="control-group" style="margin-top: 10px">
+            <span class="control-label">BPF FILTER EXPRESSION</span>
+            <div class="bpf-input-wrapper">
+              <input
+                type="text"
+                id="bpf-input"
+                class="bpf-input"
+                placeholder="e.g. tcp or port 80"
+              />
+              <button id="btn-apply-filter" class="btn-apply">Apply</button>
+            </div>
+
+            <div class="filter-status-row">
+              <span>Filter Status:</span>
+              <span class="active-filter-badge" id="active-filter-text"
+                >none</span
+              >
+            </div>
+
+            <div id="compile-banner" class="notification-banner">
+              ✔ BPF Compiled Successfully
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">Quick Presets</span>
+            <div class="preset-filters">
+              <div class="filter-chip" data-filter="all">All Traffic</div>
+              <div class="filter-chip" data-filter="tcp">TCP</div>
+              <div class="filter-chip" data-filter="udp">UDP</div>
+              <div class="filter-chip" data-filter="port 80">Port 80</div>
+              <div class="filter-chip" data-filter="icmp">ICMP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="live-feed-panel">
+          <div class="feed-heading-row">
+            <div class="feed-title">LIVE CAPTURE FEED</div>
+            <div class="feed-stats">
+              Captured Packets:
+              <span id="captured-count" class="feed-counter-badge">0</span>
+            </div>
+          </div>
+
+          <div class="console-frame">
+            <div class="console-grid-header">
+              <div>Timestamp</div>
+              <div>Source IP</div>
+              <div>Dest IP</div>
+              <div>Protocol</div>
+              <div>Length</div>
+            </div>
+
+            <div id="console-scroll" class="console-scroll-area">
+              <div id="empty-state" class="empty-placeholder">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                  />
+                </svg>
+                <span>Waiting for active data transmission...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
