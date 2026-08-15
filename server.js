@@ -39,6 +39,10 @@ const ANOMALY_LOG_FILE = "C:\\hpnta\\anomalies.jsonl";
 let lastSeenAnomalyId = 0;
 let lastProcessedLineCount = 0;
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 async function initWatermark() {
   const [rows] = await pool.query(
     "SELECT COALESCE(MAX(id), 0) AS max_id FROM network_anomalies",
